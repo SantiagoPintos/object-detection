@@ -14,6 +14,7 @@ const App = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<ModelStatus>('Loading model');
   const [scale, setScale] = useState(0.5);
+  //threshold is the minimum confidence score for a bounding box to be displayed
   const [threshold, setThreshold] = useState(0.25);
   const [size, setSize] = useState(128);
   const [fps, setFps] = useState<number>(0);
