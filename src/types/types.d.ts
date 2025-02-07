@@ -6,3 +6,5 @@ interface ControlProps {
     label: string;
     onChange: (value: number) => void;
 }
+
+type ModelStatus = 'Loading model' | 'Ready' | 'Error';

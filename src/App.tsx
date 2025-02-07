@@ -12,10 +12,14 @@ const App = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState('Loading model...');
+  const [status, setStatus] = useState<ModelStatus>('Loading model');
   const [scale, setScale] = useState(0.5);
   const [threshold, setThreshold] = useState(0.25);
   const [size, setSize] = useState(128);
+  const [fps, setFps] = useState<number>(0);
+  const fpsBufferRef = useRef<number[]>([]);
+  // Average over 30 frames
+  const FPS_BUFFER_SIZE = 30; 
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const modelRef = useRef<any>(null);
@@ -32,7 +36,8 @@ const App = () => {
         processorRef.current = await AutoProcessor.from_pretrained(model_id);
         setStatus('Ready');
       } catch (error) {
-        setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error(error);
+        setStatus('Error');
       }
     };
     initializeModel();
@@ -90,8 +95,13 @@ const App = () => {
         outputs.tolist().forEach((x: number[]) => renderBox(x, sizes));
 
         if (previousTime.current !== undefined) {
-          const fps = 1000 / (performance.now() - previousTime.current);
-          setStatus(`FPS: ${fps.toFixed(2)}`);
+          const currentFps = 1000 / (performance.now() - previousTime.current);
+          fpsBufferRef.current.push(currentFps);
+          if (fpsBufferRef.current.length > FPS_BUFFER_SIZE) {
+            fpsBufferRef.current.shift();
+          }
+          const averageFps = fpsBufferRef.current.reduce((a, b) => a + b, 0) / fpsBufferRef.current.length;
+          setFps(averageFps);
         }
         previousTime.current = performance.now();
         isProcessing.current = false;
@@ -179,6 +189,7 @@ const App = () => {
       </div>
       
       <label id="status">{status}</label>
+      <label id="fps">Average FPS: {fps.toFixed(1)}</label>
     </div>
   );
 };
