@@ -1,25 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { env, AutoModel, AutoProcessor, RawImage } from '@xenova/transformers';
 import { COLOURS } from './constants/constants';
+import { Control } from './components/Control';
 import './App.css';
 
 env.allowLocalModels = false;
 env.backends.onnx.wasm.proxy = true;
-
-const Control = ({ value, min, max, step, label, onChange }: ControlProps) => (
-  <div>
-    <label>{label} (<span>{value}</span>)</label>
-    <br />
-    <input
-      type="range"
-      min={min}
-      max={max}
-      step={step}
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-    />
-  </div>
-);
 
 const App = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
