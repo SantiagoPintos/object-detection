@@ -3,6 +3,7 @@ import { env, AutoModel, AutoProcessor, RawImage } from '@xenova/transformers';
 import { COLOURS } from './constants/constants';
 import { Control } from './components/Control';
 import { Loading } from './components/Loading';
+import { Error } from './components/Error';
 import './App.css'
 
 env.allowLocalModels = false;
@@ -133,7 +134,8 @@ const App = () => {
         }
         requestAnimationFrame(updateCanvas);
       } catch (error) {
-        alert(error instanceof Error ? error.message : 'Failed to access webcam');
+        console.error(error);
+        setStatus('Error');
       }
     };
 
@@ -144,65 +146,67 @@ const App = () => {
     <div className="h-full flex flex-col items-center justify-center py-4 px-8">
       { status == 'Loading model' 
       ? <Loading /> 
-      : <div>
-         <h1 className="text-center mb-4">
-           Real-time object detection w/
-           <a
-             href="https://github.com/huggingface/transformers.js"
-             target="_blank"
-             rel="noreferrer"
-             className="text-blue-600 hover:underline ml-1"
+      : status == 'Error'
+        ? <Error />
+        : <div>
+           <h1 className="text-center mb-4">
+             Real-time object detection w/
+             <a
+               href="https://github.com/huggingface/transformers.js"
+               target="_blank"
+               rel="noreferrer"
+               className="text-blue-600 hover:underline ml-1"
+             >
+               🤗 Transformers.js
+             </a>
+           </h1>
+
+           <div
+             ref={containerRef}
+             className="relative w-[720px] h-[405px] max-w-full max-h-full border-2 border-dashed border-gray-300 rounded-xl overflow-hidden mt-4 flex items-center justify-center bg-cover bg-center"
            >
-             🤗 Transformers.js
-           </a>
-         </h1>
+             <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+             <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+             <div ref={overlayRef} className="absolute inset-0 w-full h-full" />
+           </div>
 
-         <div
-           ref={containerRef}
-           className="relative w-[720px] h-[405px] max-w-full max-h-full border-2 border-dashed border-gray-300 rounded-xl overflow-hidden mt-4 flex items-center justify-center bg-cover bg-center"
-         >
-           <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-           <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-           <div ref={overlayRef} className="absolute inset-0 w-full h-full" />
-         </div>
-
-         <div className="flex p-4 gap-4 mt-4">
-           <Control
-             value={size}
-             min={64}
-             max={256}
-             step={32}
-             label="Image size"
-             onChange={(v) => {
-               setSize(v);
-               processorRef.current.feature_extractor.size = { shortest_edge: v };
-             }}
-           />
-           <Control
-             value={threshold}
-             min={0.01}
-             max={1}
-             step={0.01}
-             label="Threshold"
-             onChange={setThreshold}
-           />
-           <Control
-             value={scale}
-             min={0}
-             max={1}
-             step={0.01}
-             label="Image scale"
-             onChange={(v) => {
-               setScale(v);
-               if (videoRef.current?.videoWidth && videoRef.current?.videoHeight) {
-                 setStreamSize(videoRef.current.videoWidth * v, videoRef.current.videoHeight * v);
-               }
-             }}
-           />
-         </div>
-           
-         <label className="text-sm min-h-4 my-2">Average FPS: {fps.toFixed(1)}</label>
-        </div>
+           <div className="flex p-4 gap-4 mt-4">
+             <Control
+               value={size}
+               min={64}
+               max={256}
+               step={32}
+               label="Image size"
+               onChange={(v) => {
+                 setSize(v);
+                 processorRef.current.feature_extractor.size = { shortest_edge: v };
+               }}
+             />
+             <Control
+               value={threshold}
+               min={0.01}
+               max={1}
+               step={0.01}
+               label="Threshold"
+               onChange={setThreshold}
+             />
+             <Control
+               value={scale}
+               min={0}
+               max={1}
+               step={0.01}
+               label="Image scale"
+               onChange={(v) => {
+                 setScale(v);
+                 if (videoRef.current?.videoWidth && videoRef.current?.videoHeight) {
+                   setStreamSize(videoRef.current.videoWidth * v, videoRef.current.videoHeight * v);
+                 }
+               }}
+             />
+           </div>
+             
+           <label className="text-sm min-h-4 my-2">Average FPS: {fps.toFixed(1)}</label>
+          </div>
       }
     </div>
   );
